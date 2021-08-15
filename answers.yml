@@ -2,7 +2,7 @@ FirstName: Ismael
 LastName: Soufiani
 MatriculationNumber: 174129
 AcademicYear: 2019-2020
-GitHubUrl: YourGithubRepositoryURL
+GitHubUrl: https://github.com/IsmaelSoufiani/DNCS_LAB
 Subnets:
   HostsA:
     RequiredAddresses: 309

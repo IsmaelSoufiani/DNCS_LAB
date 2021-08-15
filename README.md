@@ -91,7 +91,7 @@ host-b                    running (virtualbox)
 
 
 # Design
-1. Define the addresses and the routes:
+## 1. Define the addresses and the routes:
 
 ![Untitled Workspace](https://user-images.githubusercontent.com/82785025/129485706-fa180fc6-a1a9-4b63-b6eb-6ebcc4bfb530.jpg)
 
@@ -106,6 +106,123 @@ host-b                    running (virtualbox)
 |Host-a | eth1 | 192.168.0.1/23 |
 |Host-b | eth1 | 192.168.2.1/23 |
 |Host-c | eth1 | 192.168.5.1/24 |
+
+
+##2. Configure every device with a script:
+
+### Router-1:
+export DEBIAN_FRONTEND=noninteractive
+
+sudo -i
+
+ip link set enp0s8 name eth1 up
+ip link set enp0s9 name eth2 up
+
+ip addr add 10.0.1.1/30 dev eth2
+
+ip link add link eth1 name eth1.10 type vlan id 10
+ip link add link eth1 name eth1.20 type vlan id 20
+
+ifconfig eth1.10 up
+ifconfig eth1.20 up
+
+ip addr add 192.168.0.10/23 dev eth1.10
+ip addr add 192.168.2.20/23 dev eth1.20
+
+ip route add 192.168.5.0/24 via 10.0.1.2
+
+sysctl -w net.ipv4.ip_forward=1
+
+
+### Router-2:
+export DEBIAN_FRONTEND=noninteractive
+
+sudo -i
+
+ip link set enp0s8 name eth1 up
+ip link set enp0s9 name eth2 up
+
+ip addr add 10.0.1.2/30 dev eth2
+ip addr add 192.168.5.2/24 dev eth1
+
+ip route add 192.168.0.0/16 via 10.0.1.1
+
+
+sysctl -w net.ipv4.ip_forward=1
+
+
+### Switch:
+export DEBIAN_FRONTEND=noninteractive
+
+apt-get update
+apt-get install -y tcpdump
+apt-get install -y openvswitch-common openvswitch-switch apt-transport-https ca-certificates curl software-properties-common
+
+sudo -i
+
+ovs-vsctl add-br switch
+
+ip link set enp0s8 name eth1
+ip link set enp0s9 name eth2
+ip link set enp0s10 name eth3
+
+ovs-vsctl add-port switch eth1
+ovs-vsctl add-port switch eth2 tag="10"
+ovs-vsctl add-port switch eth3 tag="20"
+
+ip link set dev eth1 up
+ip link set dev eth2 up
+ip link set dev eth3 up
+
+
+### Host-a:
+export DEBIAN_FRONTEND=noninteractive
+
+sudo -i
+
+ip link set enp0s8 name eth1 up
+
+ip addr add 192.168.0.1/23 dev eth1
+
+ip route add 10.0.1.0/30 via 192.168.0.10 dev eth1
+ip route add 192.168.2.0/23 via 192.168.0.10 dev eth1
+ip route add 192.168.5.0/24 via 192.168.0.10 dev eth1
+
+
+### Host-b:
+export DEBIAN_FRONTEND=noninteractive
+
+sudo -i
+
+ip link set enp0s8 name eth1 up
+
+ip addr add 192.168.2.1/23 dev eth1
+
+ip route add 10.0.1.0/30 via 192.168.2.20 dev eth1
+ip route add 192.168.0.0/23 via 192.168.2.20 dev eth1
+ip route add 192.168.5.0/24 via 192.168.2.20 dev eth1
+
+
+### Host-c:
+export DEBIAN_FRONTEND=noninteractive
+
+sudo -i
+
+apt-get update
+apt-get -y install docker.io
+systemctl start docker
+systemctl enable docker
+
+docker pull dustnic82/nginx-test
+docker run --name nginx -p 80:80 -d dustnic82/nginx-test
+
+ip link set enp0s8 name eth1 up
+ip addr add 192.168.5.1/24 dev eth1
+
+ip route add 10.0.1.0/30 via 192.168.5.2 dev eth1
+ip route add 192.168.0.0/23 via 192.168.5.2 dev eth1
+ip route add 192.168.2.0/23 via 192.168.5.2 dev eth1
+
 
 
 # Notes and References

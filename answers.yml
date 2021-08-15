@@ -1,0 +1,18 @@
+FirstName: Ismael
+LastName: Soufiani
+MatriculationNumber: 174129
+AcademicYear: 2019-2020
+GitHubUrl: YourGithubRepositoryURL
+Subnets:
+  HostsA:
+    RequiredAddresses: 309
+    SubnetAddress: 192.168.0.0
+    SubnetPrefixLength: 23 (255.255.254.0)
+  HostsB:
+    RequiredAddresses: 474
+    SubnetAddress: 192.168.2.0
+    SubnetPrefixLength: 23 (255.255.254.0)
+  Hub:
+    RequiredAddresses: 186
+    SubnetAddress: 192.168.5.0
+    SubnetPrefixLength: 24 (255.255.255.0)
